@@ -18,7 +18,8 @@ namespace ProjekatZI
             string json = ToJson();
             byte[] jsonBytes = Encoding.UTF8.GetBytes(json);
             byte[] jsonLength = BitConverter.GetBytes(jsonBytes.Length);
-            using(MemoryStream ms = new MemoryStream())
+
+            using (MemoryStream ms = new MemoryStream())
             {
                 ms.Write(jsonLength, 0, jsonLength.Length);
                 ms.Write(jsonBytes, 0, jsonBytes.Length);
