@@ -4,8 +4,9 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.IO;
+using ProjekatZI.Services;
 
-namespace ProjekatZI.Services
+namespace ProjekatZI.FileService
 {
     internal class FSWclass
     {
@@ -49,7 +50,7 @@ namespace ProjekatZI.Services
         public void Start()
         {
             fsw.EnableRaisingEvents = true;
-            logger.Log($"FSW: pokrenut za direktorijum {this.sourcePath}");
+            logger.Log($"FSW: pokrenut za direktorijum {sourcePath}");
         }
         public void Stop()
         {
