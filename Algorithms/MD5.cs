@@ -8,5 +8,6 @@ namespace ProjekatZI.Algorithms
 {
     internal class MD5
     {
+
     }
 }

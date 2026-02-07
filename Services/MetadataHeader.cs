@@ -9,22 +9,19 @@ namespace ProjekatZI
         public string OriginalName { get; set; }
         public long FileSize { get; set; }
         public DateTime CreationDate { get; set; }
-        public string EncryptAlg { get; set; }
-        public string HashAlg { get; set; }
-
+        public string EncryptAlg { get; set; } = string.Empty;
+        public string? Mode { get; set; } = string.Empty;
+        public string HashValue { get; set; } = string.Empty;
         public MetadataHeader() { }
         public byte[] ToBytes()
         {
             string json = ToJson();
             byte[] jsonBytes = Encoding.UTF8.GetBytes(json);
             byte[] jsonLength = BitConverter.GetBytes(jsonBytes.Length);
-
-            using (MemoryStream ms = new MemoryStream())
-            {
-                ms.Write(jsonLength, 0, jsonLength.Length);
-                ms.Write(jsonBytes, 0, jsonBytes.Length);
-                return ms.ToArray();
-            }
+            byte[] res = new byte[jsonLength.Length + jsonBytes.Length];
+            Array.Copy(jsonLength, 0, res, 0, jsonLength.Length);
+            Array.Copy(jsonBytes, 0, res, jsonLength.Length, jsonBytes.Length);
+            return res;
         }
         public MetadataHeader FromBytes(byte[] data, out int hLength)
         {
