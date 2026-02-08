@@ -10,7 +10,7 @@ namespace ProjekatZI
         public long FileSize { get; set; }
         public DateTime CreationDate { get; set; }
         public string EncryptAlg { get; set; } = string.Empty;
-        public string? Mode { get; set; } = string.Empty;
+        public string? Nonce { get; set; } = string.Empty;
         public string HashValue { get; set; } = string.Empty;
         public MetadataHeader() { }
         public byte[] ToBytes()

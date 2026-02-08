@@ -8,18 +8,12 @@ namespace ProjekatZI.Algorithms
 {
     internal class MD5
     {
-        static int[] rValue;
-
-        static uint[] K;
-        static uint a0, b0, c0, d0;
-        public MD5()
-        {
-            rValue = new int[64] { 7, 12, 17, 22,  7, 12, 17, 22,  7, 12, 17, 22,  7, 12, 17, 22,
+        private static int[] rValue = new int[64] { 7, 12, 17, 22,  7, 12, 17, 22,  7, 12, 17, 22,  7, 12, 17, 22,
             5,  9, 14, 20,  5,  9, 14, 20,  5,  9, 14, 20,  5,  9, 14, 20,
             4, 11, 16, 23,  4, 11, 16, 23,  4, 11, 16, 23,  4, 11, 16, 23,
             6, 10, 15, 21,  6, 10, 15, 21,  6, 10, 15, 21,  6, 10, 15, 21
             };
-            K = new uint[64]
+        private static uint[] K = new uint[64]
             {
                 0xd76aa478, 0xe8c7b756, 0x242070db, 0xc1bdceee,
             0xf57c0faf, 0x4787c62a, 0xa8304613, 0xfd469501,
@@ -38,12 +32,7 @@ namespace ProjekatZI.Algorithms
             0x6fa87e4f, 0xfe2ce6e0, 0xa3014314, 0x4e0811a1,
             0xf7537e82, 0xbd3af235, 0x2ad7d2bb, 0xeb86d391
             };
-            a0 = 0x67452301;
-            b0 = 0xEFCDAB89;
-            c0 = 0x98BADCFE;
-            d0 = 0x10325476;
-        }
-        public uint LeftRotate(uint x, int y)
+        public static uint LeftRotate(uint x, int y)
         {
             return (x << y) | (x >> (32 - y));
         }
@@ -69,6 +58,10 @@ namespace ProjekatZI.Algorithms
         }
         public static string CalculateHash(byte[] input)
         {
+            uint a0 = 0x67452301;
+            uint b0 = 0xEFCDAB89;
+            uint c0 = 0x98BADCFE;
+            uint d0 = 0x10325476;
             byte[] padded = PadMessage(input);
             for(int chunk = 0; chunk < padded.Length; chunk += 64)
             {
@@ -107,7 +100,8 @@ namespace ProjekatZI.Algorithms
                     uint temp = d;
                     d = c;
                     c = b;
-                    b = b + LeftRotate(a + f + k[i] + w[g], r[i]);
+                    b = b + LeftRotate(a + f + K[i] + w[g], rValue[i]);
+                    a = temp;
                 }
                 a0 += a;
                 b0 += b;
