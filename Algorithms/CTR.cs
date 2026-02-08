@@ -35,41 +35,64 @@ namespace ProjekatZI.Algorithms
             this.key = k;
             this.nonce = n;
         }
-        public byte[] Encrypt(byte[] pt)
-        {
-            return CTRAlgorithm(pt);
-        }
-        public byte[] Decrypt(byte[] ct)
-        {
-            return CTRAlgorithm(ct);
-        }
-        public byte[] CTRAlgorithm(byte[] input)
+        public void Encrypt(Stream input, Stream output, int size = 4096) =>
+            CTRAlgorithm(input, output, size);
+        public void Decrypt(Stream input, Stream output, int size = 4096) =>
+            CTRAlgorithm(input, output, size);
+       
+        public void CTRAlgorithm(Stream input, Stream output, int bufferSize = 4096)
         {
             //ovde ide glavna logika koja se koristi u CTR algoritmu.
             //ci = Ek(nonce || i) xor mi
             //mi = ci xor Ek(nonce || i)
-            byte[] output = new byte[input.Length];
             const int keystreamSize = 15;
-            int numBlocks = (int)Math.Ceiling((double)input.Length / keystreamSize);
-            for(int num = 0; num < numBlocks; num++)
+
+            int blockAligmentSize = (bufferSize / keystreamSize) * keystreamSize;
+            if (blockAligmentSize == 0) blockAligmentSize = keystreamSize;
+
+            byte[] readBuffer = new byte[blockAligmentSize];
+            byte[] writeBuffer = new byte[blockAligmentSize];
+
+            long globalIndex = 0;
+            int bytesRead;
+
+            while ((bytesRead = TotalRead(input, readBuffer, blockAligmentSize)) > 0)
             {
-                //pravi se counter:
-                ulong counter = nonce + (ulong)num;
-                cipher.Initialize(this.key, (uint)(counter & 0xFFFFFFFF));
-                cipher.KeyStream(out byte[] upKey, out byte[] downKey);
-                //koristimo upKey kao keystream.
-                byte[] keystream = upKey;
-                int startInd = num * keystreamSize;
-                int endInd = Math.Min(startInd + keystreamSize, input.Length);
+                int numBlocks = (int)Math.Ceiling((double)bytesRead / keystreamSize);
 
-                for(int i = startInd; i < endInd; i++)
+                for (int num = 0; num < numBlocks; num++)
                 {
-                    int keystreamInd = i - startInd;
-                    output[i] = (byte)(input[i] ^ keystream[keystreamInd]);
-                }
-            }
-            return output;
-        }
+                    //pravi se counter:
+                    ulong counter = nonce + (ulong)(globalIndex + num);
+                    cipher.Initialize(this.key, (uint)(counter & 0xFFFFFFFF));
+                    cipher.KeyStream(out byte[] upKey, out byte[] downKey);
+                    //koristimo upKey kao keystream.
 
+                    int startInd = num * keystreamSize;
+                    int endInd = (int)Math.Min(startInd + keystreamSize, input.Length);
+
+                    for (int i = startInd; i < endInd; i++)
+                    {
+                        writeBuffer[i] = (byte)(readBuffer[i] ^ upKey[i - startInd]);
+                    }
+
+                }
+
+                output.Write(writeBuffer, 0, bytesRead);
+                globalIndex += numBlocks;
+            }
+        }
+        //funkcija koja se koristi da procita tacno odredjeni broj bajtova iz strima.
+        public static int TotalRead(Stream data, byte[] buffer, int byteNum)
+        {
+            int totalRead = 0;
+            while(totalRead < byteNum)
+            {
+                int r = data.Read(buffer, totalRead, byteNum - totalRead);
+                if (r == 0) break;
+                totalRead += r;
+            }
+            return totalRead;
+        }
     }
 }

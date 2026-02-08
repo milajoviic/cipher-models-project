@@ -122,14 +122,19 @@ namespace ProjekatZI.Algorithms
             Array.Copy(keystreamFull, 0, upKey, 0, 15);
             Array.Copy(keystreamFull, 14, downKey, 0, 15);
         }
-        public byte[] ProcessData(byte[] data, byte[] ks)
+        public void ProcessData(Stream input, Stream output, byte[] ks, int bufferSize = 4096)
         {
-            byte[] result = new byte[data.Length];
-            for(int i = 0; i < data.Length; i++)
+            byte[] buffer = new byte[bufferSize];
+            int bytesRead;
+            long totalRead = 0;
+
+            while((bytesRead = input.Read(buffer, 0, buffer.Length))>0)
             {
-                result[i] = (byte)(data[i] ^ ks[i % ks.Length]);
+                for(int i=0; i<bytesRead; i++)
+                    buffer[i] ^= ks[(int)((totalRead + i) % ks.Length)];
+                output.Write(buffer, 0, bytesRead);
+                totalRead += bytesRead;
             }
-            return result;
         }
     }
 }
