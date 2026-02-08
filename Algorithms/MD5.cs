@@ -43,7 +43,7 @@ namespace ProjekatZI.Algorithms
             c0 = 0x98BADCFE;
             d0 = 0x10325476;
         }
-        public uint leftRotate(uint x, int y)
+        public uint LeftRotate(uint x, int y)
         {
             return (x << y) | (x >> (32 - y));
         }
@@ -81,8 +81,57 @@ namespace ProjekatZI.Algorithms
                 uint b = b0;
                 uint c = c0;
                 uint d = d0;
+                for(int i = 0; i < 64; i++)
+                {
+                    uint f, g;
+                    if(i <= 15)
+                    {
+                        f = (b & c) | (~b & d);
+                        g = (uint)i;
+                    }
+                    else if(i <= 31)
+                    {
+                        f = (d & b) | (~d & c);
+                        g = (uint)((5 * i + 1) % 16);
+                    }
+                    else if (i <= 47)
+                    {
+                        f = b ^ c ^ d;
+                        g = (uint)((3 * i + 5) % 16);
+                    }
+                    else 
+                    {
+                        f = c ^ (b | ~d);
+                        g = (uint)((7 * i) % 16);
+                    }
+                    uint temp = d;
+                    d = c;
+                    c = b;
+                    b = b + LeftRotate(a + f + k[i] + w[g], r[i]);
+                }
+                a0 += a;
+                b0 += b;
+                c0 += c;
+                d0 += d;
             }
-            return "";
+            byte[] result = new byte[16];
+            Array.Copy(BitConverter.GetBytes(a0), 0, result, 0, 4);
+            Array.Copy(BitConverter.GetBytes(b0), 0, result, 4, 4);
+            Array.Copy(BitConverter.GetBytes(c0), 0, result, 8, 4);
+            Array.Copy(BitConverter.GetBytes(d0), 0, result, 12, 4);
+
+
+            return BitToHexString(result);
+        }
+
+        private static string BitToHexString(byte[] data)
+        {
+            StringBuilder sb = new StringBuilder();
+            foreach(byte b in data)
+            {
+                sb.Append(b.ToString("x2"));
+            }
+            return sb.ToString();
         }
     }
 }
