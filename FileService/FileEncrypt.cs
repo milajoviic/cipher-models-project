@@ -6,7 +6,9 @@ using System.Threading.Tasks;
 
 namespace ProjekatZI.FileService
 {
+    //servis koji povezuje sve algoritme i radi sa fajlovima.
     internal class FileEncrypt
     {
+
     }
 }

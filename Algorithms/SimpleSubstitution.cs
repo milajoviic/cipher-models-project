@@ -56,21 +56,30 @@ namespace ProjekatZI.Algorithms
             }
         }
 
-        public byte[] Encrypt(byte[] data)
-        {
-            byte[] result = new byte[data.Length];
-            for(int i = 0; i < data.Length; i++)
-                result[i] = encryptTable[data[i]];
+        public void Encrypt(Stream input, Stream output, int size = 4096) =>
+            ProcessData(input, output, encryptTable, size);
 
-            return result;
-        }
 
-        public byte[] Decrypt(byte[] data)
+        public void Decrypt(Stream input, Stream output, int size = 4096) =>
+            ProcessData(input, output, decryptTable, size);
+       
+
+        //promena u odnosu na funkcije koje rade samo sa bajtovima.
+        //cita u baferima, primenjuje tabelu bajt po bajt.
+        private void ProcessData(Stream input, Stream output, 
+            Dictionary<byte, byte> table, int buffSize)
         {
-            byte[] result = new byte[data.Length];
-            for(int i = 0; i < data.Length; i++)
-                result[i] = decryptTable[data[i]];
-            return result;
+            byte[] buffer = new byte[buffSize];
+            int bytesRead;
+
+            while((bytesRead = input.Read(buffer, 0, buffer.Length)) > 0)
+            {
+                for(int i=0; i < bytesRead; i++)
+                {
+                    buffer[i] = table[buffer[i]];
+                }
+                output.Write(buffer, 0, bytesRead);
+            }
         }
     }
 }
