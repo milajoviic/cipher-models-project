@@ -47,6 +47,7 @@ namespace ProjekatZI.Services
                 logger.Log($"TCP: server pokrenut na portu {port}");
 
                 Task.Run(() => AcceptAsync());
+                //_ = AcceptAsync();
             }
             catch(Exception e)
             {
@@ -57,7 +58,7 @@ namespace ProjekatZI.Services
         public void Stop()
         {
             isListening = false;
-            listener.Stop();
+            try { listener?.Stop(); } catch { }
             logger.Log("TCP: server je zaustavljen");
         }
 
@@ -70,63 +71,63 @@ namespace ProjekatZI.Services
                     TcpClient client = await listener.AcceptTcpClientAsync();
                     logger.Log("TCP: klijent je povezan");
                     _ = Task.Run(() => HandleClientAsync(client));
+                    //_ = HandleClientAsync(client);
                 }
                 catch(Exception e)
                 {
-                    logger.Log("TCP: greska prilikom prihvatanja klijenta");
+                    if(isListening)
+                        logger.Log("TCP: greska prilikom prihvatanja klijenta");
                 }
             }
         }
         private async Task HandleClientAsync(TcpClient client)
         {
-            using(NetworkStream stream = client.GetStream())
+            try
             {
-                try
+                using (client)
+                using (NetworkStream nStream = client.GetStream())
                 {
-                    using (client) 
-                    using(NetworkStream nStream = client.GetStream())
+                    //citanje tipa podataka (1=rec, 2=fajl sa headerom)
+                    byte[] typeBuffer = new byte[1];
+                    await TotalReadAsync(nStream, typeBuffer, 1);
+                    byte dataType = typeBuffer[0];
+
+                    //citanje duzine podataka:
+                    byte[] bufferSize = new byte[8];
+                    await TotalReadAsync(nStream, bufferSize, 8);
+                    long dataLength = BitConverter.ToInt64(bufferSize, 0);
+
+                    if (dataType == 1)
                     {
-                        //citanje tipa podataka (1=rec, 2=fajl sa headerom)
-                        byte[] typeBuffer = new byte[1];
-                        await stream.ReadAsync(typeBuffer, 0, 1);
-                        byte dataType = typeBuffer[0];
-
-                        //citanje duzine podataka:
-                        byte[] bufferSize = new byte[8];
-                        await stream.ReadAsync(bufferSize, 0, 4);
-                        int dataLength = BitConverter.ToInt32(bufferSize, 0);
-
-                        if (dataType == 1)
-                        {
-                            byte[] data = new byte[dataLength];
-                            await TotalReadAsync(nStream, data, (int)dataLength);
-                            HandleKeyData(data);
-                        }
-                        else if (dataType == 2)
-                        {
-                            HandleFileData(nStream, dataLength);
-                        }
-                        else
-                        {
-                            logger.Log($"TCP: nepoznat tip podatka: {dataType}");
-                        }
+                        byte[] data = new byte[dataLength];
+                        await TotalReadAsync(nStream, data, (int)dataLength);
+                        HandleKeyData(data);
                     }
-                }
-                catch(Exception e)
-                {
-                    logger.Log($"TCP: greska prilikom rada sa klijentom {e.Message}");
-                }
-                finally
-                {
-                    client?.Close();
+                    else if (dataType == 2)
+                    {
+                        await HandleFileData(nStream, dataLength);
+                    }
+                    else
+                    {
+                        logger.Log($"TCP: nepoznat tip podatka: {dataType}");
+                    }
+
                 }
             }
+            catch (Exception e)
+            {
+                logger.Log($"TCP: greska prilikom rada sa klijentom {e.Message}");
+            }
+            //finally
+            //{
+            //    client?.Close();
+            //}
         }
         public async Task SendSecretKeyAsync(string ip, string secret)
         {
             try
             {
-                using(TcpClient client = new TcpClient(ip, port))
+                using(TcpClient client = new TcpClient())
                 {
                     await client.ConnectAsync(ip, port);
                     using(NetworkStream stream = client.GetStream())
@@ -155,7 +156,7 @@ namespace ProjekatZI.Services
 
                 long fileSize = fileInfo.Length;
 
-                using (TcpClient client = new TcpClient(ip, port))
+                using (TcpClient client = new TcpClient())
                 {
                     await client.ConnectAsync(ip, port);
                     using(NetworkStream nStream = client.GetStream())
@@ -219,6 +220,15 @@ namespace ProjekatZI.Services
                     {
                         header = MetadataHeader.ReadFromStream(readStream);
                     }
+
+                    if(string.IsNullOrEmpty(currSecret))
+                    {
+                        logger.Log("TCP: UPOZORENJE — tajna rec nije postavljena! Fajl se ne moze desifrovati.");
+                        logger.Log($"TCP: sifrovani fajl sacuvan kao: {tempFile}");
+                        FileRecieved?.Invoke(this, tempFile);
+                        return;
+                    }
+
                     string decryptedPath = Path.Combine(directory, header.OriginalName);
                     var fileEncrypt = new FileEncrypt(logger);
                     try
@@ -227,7 +237,7 @@ namespace ProjekatZI.Services
                         logger.Log($"TCP: fajl {resultH.OriginalName} je primljen, desifrovan i verifikovan uspesno");
                         FileRecieved?.Invoke(this, decryptedPath);
                     }
-                    catch(Exception e)
+                    catch(InvalidDataException e)
                     {
                         logger.Log($"TCP: neuspesna verifikacija hash koda {tempFile}");
                         FileRecieved?.Invoke(this, tempFile);
