@@ -3,6 +3,7 @@ using System.Text;
 using System.Net;
 using System.Net.Sockets;
 using System.IO;
+using ProjekatZI.FileService;
 
 namespace ProjekatZI.Services
 {
