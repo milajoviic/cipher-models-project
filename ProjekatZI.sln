@@ -7,7 +7,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ProjekatZI", "ProjekatZI.cs
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Test", "..\Test\Test.csproj", "{CBD67DCB-976E-4042-B82B-505DE07296E1}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ProjekaZIAvalonia", "..\ProjekaZIAvalonia\ProjekaZIAvalonia.csproj", "{5CBB01A7-6AB3-4B2D-B030-C9ADAB143122}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ProjekatZIAvalonia", "..\ProjekaZIAvalonia\ProjekatZIAvalonia.csproj", "{5CBB01A7-6AB3-4B2D-B030-C9ADAB143122}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

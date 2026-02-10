@@ -48,7 +48,7 @@ namespace ProjekatZI.FileService
                     case "CTR":
                         EncryptCTR(inPath, output, secret, header);
                         break;
-                    case "SIMPLESUBSTITUTION":
+                    case "SimpleSubstitution":
                         EncryptSimpleSubstitution(inPath, output, secret, header);
                         break;
                     default:
@@ -135,10 +135,6 @@ namespace ProjekatZI.FileService
             ss.InitializeTables(secret);
             ss.Decrypt(inStream, outStream);
         }
-        //ostalo:
-        //pomocna funkcija koja se koristi da se generise 64bitni kljuc od reci
-        //koristeci md5 hash algoritam.
-        //funkcija uzima prvih 8 bajtova md5 hash-a.
         private static ulong GenerateKeyFromSecret(string secret)
         {
             byte[] secretBytes = Encoding.UTF8.GetBytes(secret);
