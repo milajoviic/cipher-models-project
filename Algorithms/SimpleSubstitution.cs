@@ -14,10 +14,6 @@ namespace ProjekatZI.Algorithms
         private readonly Dictionary<byte, byte> encryptTable;
         private readonly Dictionary<byte, byte> decryptTable;
 
-        //to do:
-        //funkcija za generisanje kljuca.
-        //enkripcija
-        //dekripcija
         public SimpleSubstitution()
         {
             encryptTable = new Dictionary<byte, byte>();

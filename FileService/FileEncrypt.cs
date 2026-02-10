@@ -32,24 +32,26 @@ namespace ProjekatZI.FileService
             }
             var header = new MetadataHeader
             {
-                OriginalName = fileInfo.Name,
+                FileName = fileInfo.Name,
                 FileSize = fileInfo.Length,
-                CreationDate = fileInfo.CreationTime,
-                EncryptAlg = alg,
-                HashAlg = "MD5",
+                TimeStamp = fileInfo.CreationTime,
+                EncryptingAlgorithm = alg,
                 HashValue = hashValue,
                 Nonce = null
             };
             logger.Log("Otpoceto sifrovanje fajla..");
             using (var output = File.Create(outPath))
             {
-                switch(alg.ToUpper())
+                switch(alg)
                 {
                     case "CTR":
                         EncryptCTR(inPath, output, secret, header);
                         break;
                     case "SimpleSubstitution":
                         EncryptSimpleSubstitution(inPath, output, secret, header);
+                        break;
+                    case "A5/2":
+                        EncryptA52(inPath, output, secret, header);
                         break;
                     default:
                         throw new ArgumentException("Nepoznat algoritam");
@@ -84,6 +86,22 @@ namespace ProjekatZI.FileService
             }
 
         }
+        private void EncryptA52(string input, Stream output, string secret, MetadataHeader header)
+        {
+            ulong key = GenerateKeyFromSecret(secret);
+            uint frame = 0x134; //moze da se postavi i bilo koji drugi
+
+            var a52 = new A52();
+            a52.Initialize(key, frame);
+            header.Nonce = frame.ToString();
+            header.WriteToStream(output);
+            a52.KeyStream(out var upKey, out var downKey);
+
+            using(var inStr = File.OpenRead(input))
+            {
+                a52.ProcessData(inStr, output, upKey);
+            }
+        }
 
         //desifrovanje fajla i verifikacija integriteta pomocu md5 hash-a
         public MetadataHeader DecryptFile(string inPath, string outPath, string secret)
@@ -98,11 +116,13 @@ namespace ProjekatZI.FileService
                 header = MetadataHeader.ReadFromStream(inStream);
                 using(var outStream = File.Create(outPath))
                 {
-                    string algorithm = header.EncryptAlg.ToUpper();
+                    string algorithm = header.EncryptingAlgorithm;
                     if (algorithm == "CTR")
                         DecryptCTR(inStream, outStream, secret, header);
-                    else if (algorithm == "SIMPLESUBSTITUTION")
+                    else if (algorithm == "SimpleSubstitution")
                         DecryptSimpleSub(inStream, outStream, secret, header);
+                    else if (algorithm == "A5/2")
+                        DecryptA52(inStream, outStream, secret, header);
                     else
                         throw new InvalidDataException("Nepoznat algoritam za desifrovanje");
                 }
@@ -134,6 +154,19 @@ namespace ProjekatZI.FileService
             var ss = new SimpleSubstitution();
             ss.InitializeTables(secret);
             ss.Decrypt(inStream, outStream);
+        }
+        private void DecryptA52(Stream input, Stream output, string secret, MetadataHeader header)
+        {
+            ulong key = GenerateKeyFromSecret(secret);
+            if (string.IsNullOrEmpty(header.Nonce))
+                throw new InvalidDataException("A5/2 zahteva frame number");
+            uint frame = uint.Parse(header.Nonce);
+            var a52 = new A52();
+            a52.Initialize(key, frame);
+
+            a52.KeyStream(out var upKey, out var downKey);
+
+            a52.ProcessData(input, output, upKey);
         }
         private static ulong GenerateKeyFromSecret(string secret)
         {

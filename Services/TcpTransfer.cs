@@ -202,11 +202,11 @@ namespace ProjekatZI.Services
                     byte[] buffer = new byte[4096];
                     long remain = length;
 
-                    while(remain > 0)
+                    while (remain > 0)
                     {
                         int notRead = (int)Math.Min(remain, buffer.Length);
                         int read = await nStream.ReadAsync(buffer, 0, notRead);
-                        if(read == 0)
+                        if (read == 0)
                         {
                             logger.Log("TCP: konekcija je prekinuta pre nego sto se procitao fajl");
                             break;
@@ -214,6 +214,7 @@ namespace ProjekatZI.Services
                         await fileStream.WriteAsync(buffer, 0, read);
                         remain -= read;
                     }
+                }
                     logger.Log($"TCP: privremeno sacuvan fajl {tempFile}");
                     MetadataHeader header;
                     using(var readStream = File.OpenRead(tempFile))
@@ -229,12 +230,12 @@ namespace ProjekatZI.Services
                         return;
                     }
 
-                    string decryptedPath = Path.Combine(directory, header.OriginalName);
+                    string decryptedPath = Path.Combine(directory, header.FileName);
                     var fileEncrypt = new FileEncrypt(logger);
                     try
                     {
                         MetadataHeader resultH = fileEncrypt.DecryptFile(tempFile, decryptedPath, currSecret);
-                        logger.Log($"TCP: fajl {resultH.OriginalName} je primljen, desifrovan i verifikovan uspesno");
+                        logger.Log($"TCP: fajl {resultH.FileName} je primljen, desifrovan i verifikovan uspesno");
                         FileRecieved?.Invoke(this, decryptedPath);
                     }
                     catch(InvalidDataException e)
@@ -244,7 +245,7 @@ namespace ProjekatZI.Services
                         return;
                     }
                     try { File.Delete(tempFile); } catch { }
-                }
+                
             }
             catch(Exception e)
             {

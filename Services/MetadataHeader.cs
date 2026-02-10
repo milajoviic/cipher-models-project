@@ -6,13 +6,12 @@ namespace ProjekatZI
 {
     internal class MetadataHeader
     {
-        public string OriginalName { get; set; }
+        public string FileName { get; set; }
         public long FileSize { get; set; }
-        public DateTime CreationDate { get; set; }
-        public string EncryptAlg { get; set; } = string.Empty;
+        public DateTime TimeStamp { get; set; }
+        public string EncryptingAlgorithm { get; set; } = string.Empty;
         public string? Nonce { get; set; } = string.Empty;
         public string HashValue { get; set; } = string.Empty;
-        public string HashAlg { get; set; } = string.Empty;
         public MetadataHeader() { }
         public byte[] ToBytes()
         {
