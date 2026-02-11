@@ -150,7 +150,6 @@ namespace ProjekatZI.Algorithms
             upKey = new byte[halfKeyStream / 8 + 1];
             downKey = new byte[halfKeyStream / 8 + 1];
 
-            //kopiraj polovine.
             Array.Copy(keystreamFull, 0, upKey, 0, 15);
             Array.Copy(keystreamFull, 14, downKey, 0, 15);
         }
