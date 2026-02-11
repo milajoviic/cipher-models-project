@@ -13,31 +13,7 @@ namespace ProjekatZI
         public ushort? Nonce { get; set; }
         public string HashValue { get; set; } = string.Empty;
         public MetadataHeader() { }
-        public byte[] ToBytes()
-        {
-            string json = ToJson();
-            byte[] jsonBytes = Encoding.UTF8.GetBytes(json);
-            byte[] lengthPrefix = BitConverter.GetBytes(jsonBytes.Length);
-
-            byte[] result = new byte[4 + jsonBytes.Length];
-            Array.Copy(lengthPrefix, 0, result, 0, 4);
-            Array.Copy(jsonBytes, 0, result, 4, jsonBytes.Length);
-            return result;
-        }
-        public static MetadataHeader FromBytes(byte[] data, out int hLength)
-        {
-            if (data.Length < 4)
-                throw new ArgumentException("Podaci su prekratki za citanje headera.");
-
-            int jsonLength = BitConverter.ToInt32(data, 0);
-
-            if (data.Length < 4 + jsonLength)
-                throw new ArgumentException($"Nedovoljno podataka: ocekivano {4 + jsonLength}, dobijeno {data.Length}.");
-
-            string json = Encoding.UTF8.GetString(data, 4, jsonLength);
-            hLength = 4 + jsonLength;
-            return FromJson(json);
-        }
+        
         public string ToJson()
         {
             return JsonSerializer.Serialize(this, new JsonSerializerOptions { WriteIndented = true });
