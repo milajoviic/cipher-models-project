@@ -64,10 +64,8 @@ namespace ProjekatZI.FileService
 
                 logger.Log($"FSW: kreiran je novi fajl: {e.Name}");
                 fileDetected?.Invoke(this, e.FullPath);
-
-                logger.Log($"FSW: automatski enkriptovan: {e.Name}");
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 logger.Log($"FSW: greska {ex.Message}");
             }
