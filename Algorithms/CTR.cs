@@ -7,8 +7,8 @@ namespace ProjekatZI.Algorithms
     {
         private A52 cipher;
         private ulong key;
-        private ulong nonce;
-        public ulong Nonce => nonce;
+        private ushort nonce;
+        public ushort Nonce => nonce;
 
         //funkcija kojom generisemo nonce. posle cu da napravim jos jednu da bismo se usaglasili sa timom.
         private ulong GenerateNonce()
@@ -17,71 +17,57 @@ namespace ProjekatZI.Algorithms
             {
                 byte[] nBytes = new byte[8];
                 rnd.GetBytes(nBytes);
-                this.nonce = BitConverter.ToUInt64(nBytes, 0);
+                this.nonce = (ushort)(BitConverter.ToUInt16(nBytes, 0) & 0x3FF);
             }
             return nonce;
         }
         //konstrukor sa poznatim kljucem
-        public CTR(ulong k)
+        public CTR(string secret)
         {
             this.cipher = new A52();
-            this.key = k;
+            this.key = GenerateKey(secret);
             GenerateNonce();
         }
         //konstruktor sa poznatim nonce-om koji se koristi za desifrovanje.
-        public CTR(ulong k, ulong n)
+        public CTR(string secret, ushort n)
         {
             this.cipher = new A52();
-            this.key = k;
+            this.key = GenerateKey(secret);
             this.nonce = n;
         }
-        public void Encrypt(Stream input, Stream output, int size = 4096) =>
-            CTRAlgorithm(input, output, size);
-        public void Decrypt(Stream input, Stream output, int size = 4096) =>
-            CTRAlgorithm(input, output, size);
-       
-        public void CTRAlgorithm(Stream input, Stream output, int bufferSize = 4096)
+        public void Encrypt(Stream input, Stream output) =>
+            CTRAlgorithm(input, output);
+        public void Decrypt(Stream input, Stream output) =>
+            CTRAlgorithm(input, output);
+
+        public void CTRAlgorithm(Stream input, Stream output)
         {
             //ovde ide glavna logika koja se koristi u CTR algoritmu.
             //ci = Ek(nonce || i) xor mi
             //mi = ci xor Ek(nonce || i)
-            const int keystreamSize = 15;
-
-            int blockAligmentSize = (bufferSize / keystreamSize) * keystreamSize;
-            if (blockAligmentSize == 0) blockAligmentSize = keystreamSize;
-
-            byte[] readBuffer = new byte[blockAligmentSize];
-            byte[] writeBuffer = new byte[blockAligmentSize];
-
-            long globalIndex = 0;
+            const int segmentSize = 4096;
+            byte[] buffer = new byte[segmentSize];
             int bytesRead;
+            long globalIndex = 0;
 
-            while ((bytesRead = TotalRead(input, readBuffer, blockAligmentSize)) > 0)
+            while ((bytesRead = TotalRead(input, buffer, segmentSize)) > 0)
             {
-                int numBlocks = (int)Math.Ceiling((double)bytesRead / keystreamSize);
+                uint counter = (uint)(globalIndex % 4096);
+                uint frameNum = ((uint)nonce << 12) | counter;
+                cipher.Initialize(this.key, frameNum);
+                byte[] keyStream = cipher.GenerateKeyStream(bytesRead);
 
-                for (int num = 0; num < numBlocks; num++)
+                for(int i = 0; i < bytesRead; i++)
                 {
-                    //pravi se counter:
-                    ulong counter = nonce + (ulong)(globalIndex + num);
-                    cipher.Initialize(this.key, (uint)(counter & 0xFFFFFFFF));
-                    cipher.KeyStream(out byte[] upKey, out byte[] downKey);
-                    //koristimo upKey kao keystream.
-
-                    int startInd = num * keystreamSize;
-                    int endInd = (int)Math.Min(startInd + keystreamSize, input.Length);
-
-                    for (int i = startInd; i < endInd; i++)
-                    {
-                        writeBuffer[i] = (byte)(readBuffer[i] ^ upKey[i - startInd]);
-                    }
-
+                    buffer[i] = (byte)(buffer[i] ^ keyStream[i]);
                 }
 
-                output.Write(writeBuffer, 0, bytesRead);
-                globalIndex += numBlocks;
+                output.Write(buffer, 0, bytesRead);
+                globalIndex++;
             }
         }
+
+
         //funkcija koja se koristi da procita tacno odredjeni broj bajtova iz strima.
         public static int TotalRead(Stream data, byte[] buffer, int byteNum)
         {
@@ -94,5 +80,19 @@ namespace ProjekatZI.Algorithms
             }
             return totalRead;
         }
+        private static ulong GenerateKey(string secret)
+        {
+            ulong key = 0;
+            foreach (char c in secret)
+                key = (key << 5) ^ (key >> 3) ^ (uint)c;
+
+            key ^= key >> 33;
+            key *= 0xFF51AFD7ED558CCD;
+            key ^= key >> 33;
+            key *= 0xC4CEB9FE1A85EC53;
+            key ^= key >> 33;
+            return key;
+        }
+
     }
 }

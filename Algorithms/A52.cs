@@ -50,7 +50,11 @@ namespace ProjekatZI.Algorithms
                 R3 ^= frameBit;
                 R4 ^= frameBit;
             }
-            for(int i = 0; i < 100; i++)
+            if (R1 == 0) R1 = 0x12345;
+            if (R2 == 0) R2 = 0x23456;
+            if (R3 == 0) R3 = 0x34567;
+            if (R4 == 0) R4 = 0x45678;
+            for (int i = 0; i < 99; i++)
             {
                 ClockControl();
                 GetOutputBit();
@@ -77,27 +81,55 @@ namespace ProjekatZI.Algorithms
             uint c2 = (R4 >> 3) & 1;
             uint c3 = (R4 >> 7) & 1;
 
-            if (c1 == 1) R1 = ClockRegister(R1, R1_taps, R1_Mask);
-            if (c2 == 1) R2 = ClockRegister(R2, R2_taps, R2_Mask);
-            if (c3 == 1) R3 = ClockRegister(R3, R3_taps, R3_Mask);
+            uint maj = (c1 & c2) | (c1 & c3) | (c2 & c3);
+
+            if (c1 == maj) R1 = ClockRegister(R1, R1_taps, R1_Mask);
+            if (c2 == maj) R2 = ClockRegister(R2, R2_taps, R2_Mask);
+            if (c3 == maj) R3 = ClockRegister(R3, R3_taps, R3_Mask);
 
             R4 = ClockRegister(R4, R4_taps, R4_Mask);
         }
         private uint GetOutputBit()
         {
-            //funkcija parnosti.
-            uint p1 = ((R1 >> 12) & 1) ^ ((R1 >> 14) & 1) ^ ((R1 >> 15) & 1);
-            uint p2 = ((R2 >> 9) & 1) ^ ((R2 >> 13) & 1) ^ ((R2 >> 16) & 1);
-            uint p3 = ((R3 >> 13) & 1) ^ ((R3 >> 16) & 1) ^ ((R3 >> 18) & 1);
+            return ((R1 >> 18) ^ (R2 >> 21) ^ (R3 >> 22)) & 1;
+            ////funkcija parnosti.
+            //uint p1 = ((R1 >> 12) & 1) ^ ((R1 >> 14) & 1) ^ ((R1 >> 15) & 1);
+            //uint p2 = ((R2 >> 9) & 1) ^ ((R2 >> 13) & 1) ^ ((R2 >> 16) & 1);
+            //uint p3 = ((R3 >> 13) & 1) ^ ((R3 >> 16) & 1) ^ ((R3 >> 18) & 1);
 
-            //bitovi najvece tezine;
-            uint r1 = (R1 >> 18) & 1;
-            uint r2 = (R2 >> 21) & 1;
-            uint r3 = (R3 >> 22) & 1;
+            ////bitovi najvece tezine;
+            //uint r1 = (R1 >> 18) & 1;
+            //uint r2 = (R2 >> 21) & 1;
+            //uint r3 = (R3 >> 22) & 1;
 
-            uint result = r1 ^ r2 ^ r3 ^ p1 ^ p2 ^ p3;
+            //uint result = r1 ^ r2 ^ r3 ^ p1 ^ p2 ^ p3;
 
-            return result;
+            //return result;
+        }
+        private static uint Parity(uint n)
+        {
+            n ^= n >> 16; 
+            n ^= n >> 8; 
+            n ^= n >> 4; 
+            n ^= n >> 2; 
+            n ^= n >> 1;
+            return n & 1;
+        }
+        public byte[] GenerateKeyStream(int length)
+        {
+            byte[] ks = new byte[length];
+            for(int i = 0; i < length; i++)
+            {
+                byte b = 0;
+                for(int j = 0; j < 8; j++)
+                {
+                    ClockControl();
+                    uint output = GetOutputBit();
+                    b = (byte)((b << 1) | output);
+                }
+                ks[i] = b;
+            }
+            return ks;
         }
         public void KeyStream(out byte[] upKey, out byte[] downKey)
         {
@@ -121,6 +153,17 @@ namespace ProjekatZI.Algorithms
             //kopiraj polovine.
             Array.Copy(keystreamFull, 0, upKey, 0, 15);
             Array.Copy(keystreamFull, 14, downKey, 0, 15);
+        }
+        public byte GetNextByte()
+        {
+            byte b = 0;
+            for (int bit = 0; bit < 8; bit++)
+            {
+                ClockControl(); // Mora koristiti Majority logiku koju sam ti poslao!
+                uint outBit = GetOutputBit(); // Mora biti (R1^R2^R3)&1
+                b = (byte)((b << 1) | outBit);
+            }
+            return b;
         }
         public void ProcessData(Stream input, Stream output, byte[] ks, int bufferSize = 4096)
         {

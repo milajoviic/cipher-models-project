@@ -40,7 +40,6 @@ namespace ProjekatZI.Algorithms
         {
             //generisi kljuc i inverzni kljuc:
             byte[] encryptKey = GenerateEncryptKey(secret);
-            byte[] decryptKey = GenerateDecryptKey(encryptKey);
             //ocisti tabele:
             encryptTable.Clear();
             decryptTable.Clear();

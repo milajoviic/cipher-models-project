@@ -8,9 +8,9 @@ namespace ProjekatZI
     {
         public string FileName { get; set; }
         public long FileSize { get; set; }
-        public DateTime TimeStamp { get; set; }
+        public DateTime Timestamp { get; set; }
         public string EncryptingAlgorithm { get; set; } = string.Empty;
-        public string? Nonce { get; set; } = string.Empty;
+        public ushort? Nonce { get; set; }
         public string HashValue { get; set; } = string.Empty;
         public MetadataHeader() { }
         public byte[] ToBytes()
