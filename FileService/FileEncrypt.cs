@@ -96,7 +96,6 @@ namespace ProjekatZI.FileService
                 }
 
                 string destPath = Path.Combine(outPath, "des_" + header.FileName);
-                logger.Log($"ime iz header-a: {destPath}");
                 using (Stream outStream = new FileStream(destPath, FileMode.Create, FileAccess.Write))
                 {
                     string algorithm = header.EncryptingAlgorithm;

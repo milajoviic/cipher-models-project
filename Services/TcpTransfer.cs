@@ -97,7 +97,7 @@ namespace ProjekatZI.Services
                 logger.Log($"TCP: Primljeno {new FileInfo(tempPath).Length} bytes");
                 if (string.IsNullOrEmpty(currSecret))
                 {
-                    logger.Log("TCP UPOZORENJE: Fajl primljen ali NEMA kljuca!");
+                    logger.Log("TCP UPOZORENJE: Fajl primljen ali nema kljuca!");
                     logger.Log("TCP: Sacuvaj enkriptovan fajl u folder...");
 
                     string savedPath = Path.Combine(directory, "encrypted_" + Path.GetFileName(tempPath));
@@ -163,7 +163,7 @@ namespace ProjekatZI.Services
                         var crypto = new FileEncrypt(logger);
                         crypto.EncryptFile(filePath, nStream, alg, secret);
                         
-                        logger.Log($"TCP: fajl je uspesno poslat na {ip} (Raw mode)");
+                        logger.Log($"TCP: fajl je uspesno poslat na {ip}");
                     }
                 }
             }
