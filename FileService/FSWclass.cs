@@ -24,7 +24,6 @@ namespace ProjekatZI.FileService
             sourcePath = src;
             destPath = dst;
 
-            //Ako direktorijum ne postoji, kreiraj ga:
             if (!Directory.Exists(destPath))
                 Directory.CreateDirectory(destPath);
 
@@ -66,7 +65,6 @@ namespace ProjekatZI.FileService
                 logger.Log($"FSW: kreiran je novi fajl: {e.Name}");
                 fileDetected?.Invoke(this, e.FullPath);
 
-                //ovde se vrsi enkriptovanje pomocu odabranog algoritma.
                 logger.Log($"FSW: automatski enkriptovan: {e.Name}");
             }
             catch(Exception ex)

@@ -5,7 +5,7 @@ namespace ProjekatZI.Services
 {
     internal class Logger
     {
-        private readonly string logPath; //putanja do log fajla.
+        private readonly string logPath; 
         private readonly object lockObject = new object();
 
         public event EventHandler<string> Logged;

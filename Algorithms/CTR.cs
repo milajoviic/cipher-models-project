@@ -9,8 +9,6 @@ namespace ProjekatZI.Algorithms
         private ulong key;
         private ushort nonce;
         public ushort Nonce => nonce;
-
-        //funkcija kojom generisemo nonce. posle cu da napravim jos jednu da bismo se usaglasili sa timom.
         private ulong GenerateNonce()
         {
             using(var rnd = RandomNumberGenerator.Create())
@@ -21,14 +19,12 @@ namespace ProjekatZI.Algorithms
             }
             return nonce;
         }
-        //konstrukor sa poznatim kljucem
         public CTR(string secret)
         {
             this.cipher = new A52();
             this.key = GenerateKey(secret);
             GenerateNonce();
         }
-        //konstruktor sa poznatim nonce-om koji se koristi za desifrovanje.
         public CTR(string secret, ushort n)
         {
             this.cipher = new A52();
@@ -42,9 +38,6 @@ namespace ProjekatZI.Algorithms
 
         public void CTRAlgorithm(Stream input, Stream output)
         {
-            //ovde ide glavna logika koja se koristi u CTR algoritmu.
-            //ci = Ek(nonce || i) xor mi
-            //mi = ci xor Ek(nonce || i)
             const int segmentSize = 4096;
             byte[] buffer = new byte[segmentSize];
             int bytesRead;
@@ -66,9 +59,6 @@ namespace ProjekatZI.Algorithms
                 globalIndex++;
             }
         }
-
-
-        //funkcija koja se koristi da procita tacno odredjeni broj bajtova iz strima.
         public static int TotalRead(Stream data, byte[] buffer, int byteNum)
         {
             int totalRead = 0;

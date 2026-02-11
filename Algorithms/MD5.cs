@@ -37,26 +37,6 @@ namespace ProjekatZI.Algorithms
         {
             return (x << y) | (x >> (32 - y));
         }
-        //private static byte[] PadMessage(byte[] message)
-        //{
-        //    long orgLength = message.Length;
-        //    long orgBitsLength = orgLength * 8;
-
-        //    int paddingLength = (int)(56 - (orgLength + 1) % 64);
-        //    if (paddingLength < 0)
-        //        paddingLength += 64;
-
-        //    byte[] paddedMessage = new byte[orgLength + 1 + paddingLength + 8];
-
-        //    Array.Copy(message, paddedMessage, orgLength);
-
-        //    paddedMessage[orgLength] = 0x80;
-
-        //    byte[] lengthBytes = BitConverter.GetBytes(orgBitsLength);
-        //    Array.Copy(lengthBytes, 0, paddedMessage, paddedMessage.Length - 8, 8);
-
-        //    return paddedMessage;
-        //}
         public static string CalculateHash(Stream input)
         {
             uint a0 = 0x67452301;
@@ -85,14 +65,6 @@ namespace ProjekatZI.Algorithms
                     ProcessChunk(buffer, 0, ref a0, ref b0, ref c0, ref d0);
             }
 
-            //byte[] result = new byte[16];
-            //Array.Copy(BitConverter.GetBytes(a0), 0, result, 0, 4);
-            //Array.Copy(BitConverter.GetBytes(b0), 0, result, 4, 4);
-            //Array.Copy(BitConverter.GetBytes(c0), 0, result, 8, 4);
-            //Array.Copy(BitConverter.GetBytes(d0), 0, result, 12, 4);
-
-
-            //return BitToHexString(result);
             return GetByteString(a0) + GetByteString(b0) + GetByteString(c0) + GetByteString(d0);
         }
         private static byte[] PadBlock(byte[] lastData, int dataLength, long totalBytes)
@@ -154,15 +126,6 @@ namespace ProjekatZI.Algorithms
             c0 += c;
             d0 += d;
         }
-        //private static string BitToHexString(byte[] data)
-        //{
-        //    StringBuilder sb = new StringBuilder();
-        //    foreach(byte b in data)
-        //    {
-        //        sb.Append(b.ToString("x2"));
-        //    }
-        //    return sb.ToString();
-        //}
         public static int TotalRead(Stream data, byte[] buff, int count)
         {
             int totalRead = 0;

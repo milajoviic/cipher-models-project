@@ -50,7 +50,6 @@ namespace ProjekatZI.Services
                 logger.Log($"TCP: server pokrenut na portu {port}");
 
                 Task.Run(() => AcceptAsync());
-                //_ = AcceptAsync();
             }
             catch(Exception e)
             {
@@ -98,7 +97,7 @@ namespace ProjekatZI.Services
                 logger.Log($"TCP: Primljeno {new FileInfo(tempPath).Length} bytes");
                 if (string.IsNullOrEmpty(currSecret))
                 {
-                    logger.Log("TCP UPOZORENJE: Fajl primljen ali NEMA ključa!");
+                    logger.Log("TCP UPOZORENJE: Fajl primljen ali NEMA kljuca!");
                     logger.Log("TCP: Sacuvaj enkriptovan fajl u folder...");
 
                     string savedPath = Path.Combine(directory, "encrypted_" + Path.GetFileName(tempPath));
@@ -137,7 +136,7 @@ namespace ProjekatZI.Services
                         await stream.WriteAsync(BitConverter.GetBytes((long)secretBytes.Length),
                             0, 8);
                         await stream.WriteAsync(secretBytes, 0, secretBytes.Length);
-                        logger.Log($"TCP: tajna rec je poslatana {ip}");
+                        logger.Log($"TCP: tajna rec je poslata na {ip}");
                     }
                 }
             }
@@ -163,10 +162,7 @@ namespace ProjekatZI.Services
                     {
                         var crypto = new FileEncrypt(logger);
                         crypto.EncryptFile(filePath, nStream, alg, secret);
-                        //using (var fileStream = File.OpenRead(filePath))
-                        //{
-                        //    await fileStream.CopyToAsync(nStream);
-                        //}
+                        
                         logger.Log($"TCP: fajl je uspesno poslat na {ip} (Raw mode)");
                     }
                 }

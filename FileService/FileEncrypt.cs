@@ -7,10 +7,6 @@ using System.Text.Json;
 
 namespace ProjekatZI.FileService
 {
-    //servis koji povezuje sve algoritme i radi sa fajlovima.
-    // [4 byte] -- duzina json-a
-    // [n byte] -- duzina header-a
-    // [m byte] -- telo fajla
     internal class FileEncrypt
     {
         private readonly Logger logger;
@@ -18,17 +14,12 @@ namespace ProjekatZI.FileService
         {
             this.logger = l;
         }
-
-        //sifrovanje fajla koriscenjem odgovarajuceg algoritma:
         public void EncryptFile(string inPath, Stream outStream, string alg, string secret)
         {
             if (!File.Exists(inPath))
                 throw new FileNotFoundException("Ulazni fajl ne postoji", inPath);
             var fileInfo = new FileInfo(inPath);
-            logger.Log($"Otpočeto šifrovanje fajla: {fileInfo.Name} algoritmom {alg}");
 
-                // Koristimo privremeni stream za šifrovani sadržaj (kao tvoj drug)
-                // da bismo mogli da izračunamo MD5 šifrata PRE pisanja headera
                 using (var tempEncryptedStream = new MemoryStream())
                 {
                     var header = new MetadataHeader
@@ -44,7 +35,7 @@ namespace ProjekatZI.FileService
                     {
                         switch (alg)
                         {
-                            case "CTR":
+                            case "A5_2":
                                 var ctr = new CTR(secret); 
                                 header.Nonce = (ushort)ctr.Nonce;
                                 ctr.Encrypt(inStream, tempEncryptedStream);
@@ -54,15 +45,15 @@ namespace ProjekatZI.FileService
                                 ss.InitializeTables(secret);
                                 ss.Encrypt(inStream, tempEncryptedStream);
                                 break;
-                            case "A5_2":
-                                ulong key = GenerateKeyFromSecret(secret);
-                                uint frame = 0x134; 
-                                header.Nonce = (ushort)frame;
-                                var a52 = new A52();
-                                a52.Initialize(key, frame);
-                                a52.KeyStream(out var upKey, out _);
-                                a52.ProcessData(inStream, tempEncryptedStream, upKey);
-                                break;
+                            //case "A5_2":
+                            //    ulong key = GenerateKeyFromSecret(secret);
+                            //    uint frame = 0x134; 
+                            //    header.Nonce = (ushort)frame;
+                            //    var a52 = new A52();
+                            //    a52.Initialize(key, frame);
+                            //    a52.KeyStream(out var upKey, out _);
+                            //    a52.ProcessData(inStream, tempEncryptedStream, upKey);
+                            //    break;
                             default:
                                 throw new ArgumentException("Nepoznat algoritam");
                         }
@@ -101,14 +92,13 @@ namespace ProjekatZI.FileService
 
                 if (currentEncryptedHash != header.HashValue)
                 {
-                    logger.Log("UPOZORENJE: Hash šifrovanog fajla se ne poklapa (fajl je možda oštećen ili format hash-a nije isti).");
+                    logger.Log("UPOZORENJE: Hash sifrovanog fajla se ne poklapa (fajl je možda ostecen ili format hash-a nije isti).");
                 }
 
                 string destPath = Path.Combine(outPath, "des_" + header.FileName);
                 logger.Log($"ime iz header-a: {destPath}");
                 using (Stream outStream = new FileStream(destPath, FileMode.Create, FileAccess.Write))
                 {
-                    logger.Log($"Pokrecem dekripciju fajla");
                     string algorithm = header.EncryptingAlgorithm;
 
                     if (string.Equals(algorithm, "A5_2", StringComparison.OrdinalIgnoreCase))

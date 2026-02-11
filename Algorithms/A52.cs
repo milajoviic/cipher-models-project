@@ -159,8 +159,8 @@ namespace ProjekatZI.Algorithms
             byte b = 0;
             for (int bit = 0; bit < 8; bit++)
             {
-                ClockControl(); // Mora koristiti Majority logiku koju sam ti poslao!
-                uint outBit = GetOutputBit(); // Mora biti (R1^R2^R3)&1
+                ClockControl(); 
+                uint outBit = GetOutputBit(); 
                 b = (byte)((b << 1) | outBit);
             }
             return b;

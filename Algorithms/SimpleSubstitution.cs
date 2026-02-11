@@ -10,7 +10,6 @@ namespace ProjekatZI.Algorithms
 {
     internal class SimpleSubstitution
     {
-        //recnici koji cuvaju pravila zamene:
         private readonly Dictionary<byte, byte> encryptTable;
         private readonly Dictionary<byte, byte> decryptTable;
 
@@ -38,9 +37,8 @@ namespace ProjekatZI.Algorithms
         }
         public void InitializeTables(string secret)
         {
-            //generisi kljuc i inverzni kljuc:
             byte[] encryptKey = GenerateEncryptKey(secret);
-            //ocisti tabele:
+            
             encryptTable.Clear();
             decryptTable.Clear();
 
@@ -59,8 +57,6 @@ namespace ProjekatZI.Algorithms
             ProcessData(input, output, decryptTable, size);
        
 
-        //promena u odnosu na funkcije koje rade samo sa bajtovima.
-        //cita u baferima, primenjuje tabelu bajt po bajt.
         private void ProcessData(Stream input, Stream output, 
             Dictionary<byte, byte> table, int buffSize)
         {

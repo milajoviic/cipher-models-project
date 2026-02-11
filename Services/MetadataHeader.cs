@@ -58,11 +58,6 @@ namespace ProjekatZI
             }
             return totalRead;
         }
-        public void WriteToStream(Stream s)
-        {
-            byte[] headerBytes = ToBytes();
-            s.Write(headerBytes, 0, headerBytes.Length);
-        }
         public static MetadataHeader ReadFromStream(Stream s)
         {
             byte[] buffSize = new byte[4];
